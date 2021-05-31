@@ -1,15 +1,7 @@
 import pygame
 import pygame_widgets as pw
-
-"""
-Content
-"""
-INSTRUCTIONS = [
-    "1. This game will last for 2 minutes",
-    "2. You can guess the most popular answer as many times as you want",
-    "3. Guessing a more popular answer will earn you more points!",
-    "4. The points will be collated and awarded at the end of the game",
-]
+from styles import *
+import random
 
 
 """
@@ -31,14 +23,6 @@ pygame.mixer.init()
 screen = pygame.display.set_mode(CONSOLE_SIZE)
 pygame.display.set_caption(CONSOLE_TITLE)
 
-C_TEAL = 0, 128, 128
-C_RED = 255, 0, 0
-C_PINK = 255, 100, 100
-C_GREEN = 0, 255, 0
-C_BLUE = 0, 0, 255
-C_WHITE = 255, 255, 255
-C_BLACK = 0, 0, 0
-C_GOLD = 255, 195, 0
 
 class Screen():
     def __init__(self, screen, next_screen=None):
@@ -49,7 +33,10 @@ class Screen():
         self._next_screen = next_screen
     def draw(self):
         for drawing in self.drawings:
-            drawing()
+            try:
+                drawing()
+            except Exception as e:
+                pass # weirdest buggy issue with textbox code, requires this except
     def handle_events(self, events):
         for event_listener in self.event_listeners:
             event_listener(events)
@@ -63,11 +50,11 @@ class Screen():
 class WelcomeScreen(Screen):
     def __init__(self, screen):
         super().__init__(screen, InstructionScreen)
-        self.start_button = pw.Button(screen, 250, 500, 300, 50, inactiveColour=C_BLUE, hoverColour=C_RED, textColour=C_WHITE,
-                            text='Start', radius=20, onRelease=self.trigger_next_screen)
-        self.welcome_title = pygame.font.SysFont('comicsans', 60).render("Welcome to RC4 Feud!!", True, C_GREEN)
+        cwt = CONFIG_WELCOME_TEXT
+        self.start_button = pw.Button(screen, *CONFIG_START_BUTTON['position'], **CONFIG_START_BUTTON, onRelease=self.trigger_next_screen)
+        self.welcome_title = pygame.font.SysFont(cwt['font'], cwt['fontSize']).render(cwt['text'], True, cwt['colour'])
         self.drawings = [
-            lambda: self.screen.blit(self.welcome_title, self.welcome_title.get_rect(center=(400, 100))),
+            lambda: self.screen.blit(self.welcome_title, self.welcome_title.get_rect(center=cwt['position'])),
             self.start_button.draw,
         ]
         self.event_listeners = [
@@ -77,15 +64,17 @@ class WelcomeScreen(Screen):
 class InstructionScreen(Screen):
     def __init__(self, screen):
         super().__init__(screen, GameScreen)
-        self.title = pygame.font.SysFont('jokerman', 60).render('INSTRUCTIONS', True, C_PINK)
-        self.next_button = pw.Button(screen, 250, 500, 300, 50, inactiveColour=C_BLUE, hoverColour=C_GREEN, textColour=C_WHITE,
-                            text='Start Game!', radius=20, onRelease=self.trigger_next_screen)
-        self.instruction_text = [pygame.font.SysFont('arial', 20).render(line, True, C_WHITE) for line in INSTRUCTIONS]
+        cit = CONFIG_INSTRUCTION_TITLE
+        self.title = pygame.font.SysFont(cit['font'], cit['fontSize']).render(cit['text'], True, cit['colour'])
+        self.next_button = pw.Button(screen, *CONFIG_NEXT_BUTTON['position'], **CONFIG_NEXT_BUTTON, onRelease=self.trigger_next_screen)
+        cit = CONFIG_INSTRUCTIONS_TEXT
+        self.instruction_text = [pygame.font.SysFont(cit['font'], cit['fontSize']).render(line, True, cit['colour']) for line in INSTRUCTIONS]
+        ftpx, ftpy = cit['firstTextPosition']
         def draw_instructions():
             for idx, rendered_text in enumerate(self.instruction_text):
-                self.screen.blit(rendered_text, rendered_text.get_rect(topleft=(100, 150 + 50 * idx)))
+                self.screen.blit(rendered_text, rendered_text.get_rect(topleft=(ftpx, ftpy + cit['spaceBetweenLines'] * idx)))
         self.drawings = [
-            lambda: self.screen.blit(self.title, self.title.get_rect(center=(400, 100))),
+            lambda: self.screen.blit(self.title, self.title.get_rect(center=CONFIG_INSTRUCTION_TITLE['position'])),
             self.next_button.draw,
             draw_instructions
         ]
@@ -96,29 +85,40 @@ class InstructionScreen(Screen):
 class GameScreen(Screen):
     def __init__(self, screen):
         super().__init__(screen)
+        self.curr_q, self.curr_a, self.curr_revealed = '', [], []
+        self.qna = QUESTIONS_AND_ANSWERS
+        self.get_next_question()
         self.time_limit = GAME_TIME_LIMIT_SECONDS + 1
         self.start_ticks = pygame.time.get_ticks()
-        self.clock_font = pygame.font.SysFont('calibri', 100)
-        self.question_font = pygame.font.SysFont('comicsans', 50)
-        self.answer_font = pygame.font.SysFont('comicsans', 50)
-        self.textbox = pw.TextBox(screen, 250, 500, 300, 50, fontSize=30,
-                  borderColour=C_BLUE, textColour=C_BLACK, radius=10, placeholderText="Test", borderThickness=5)
+        self.clock_font = pygame.font.SysFont(CONFIG_TIMER['font'], CONFIG_TIMER['fontSize'])
+        self.question_font = pygame.font.SysFont(CONFIG_QUESTION_TEXT['font'], CONFIG_QUESTION_TEXT['fontSize'])
+        self.answer_font = pygame.font.SysFont(CONFIG_ANSWER_TEXT['font'], CONFIG_ANSWER_TEXT['fontSize'])
+        cib = CONFIG_INPUT_BOX
+        cib['font'] = pygame.font.SysFont(cib['font'], cib['fontSize'])
+        self.textbox = pw.TextBox(screen, *cib['position'], onSubmit=self.process_answer, **cib)
         self.drawings = [
             self.textbox.draw,
         ]
 
     def draw(self):
         time_left = self.time_limit - (pygame.time.get_ticks() - self.start_ticks) / 1000
-        rendered_time = self.clock_font.render(f'{int(time_left // 60)}:{int(time_left % 60):02}', True, C_WHITE)
-        self.screen.blit(rendered_time, rendered_time.get_rect(center=(400, 80)))
-        rendered_question = self.question_font.render(self.get_question(), True, C_WHITE)
-        self.screen.blit(rendered_question, rendered_question.get_rect(center=(400, 150)))
-        for i in range(8):
-            self.draw_answer_frame((CONSOLE_WIDTH / 2 + (-305 if i % 2 == 0 else 5), 200 + i//2 * 60))
+        rendered_time = self.clock_font.render(f'{int(time_left // 60)}:{int(time_left % 60):02}', True, CONFIG_TIMER['colour'])
+        self.screen.blit(rendered_time, rendered_time.get_rect(center=CONFIG_TIMER['position']))
+        rendered_question = self.question_font.render(self.curr_q, True, CONFIG_QUESTION_TEXT['colour'])
+        self.screen.blit(rendered_question, rendered_question.get_rect(center=CONFIG_QUESTION_TEXT['position']))
+
+        for idx, ans in enumerate(self.curr_a):
+            if not self.curr_revealed[idx]:
+                ans = ''
+            self.draw_answer_frame(topleft=(CONSOLE_WIDTH / 2 + (-305 if idx % 2 == 0 else 5), 200 + idx//2 * 60), text=ans)
         super().draw()
 
-    def draw_answer_frame(self, topleft):
+    def draw_answer_frame(self, topleft=None, center=None, text=''):
         w, h = 300, 50
+        if not topleft:
+            topleft = center[0] - w/2, center[1] - h/2
+        if not center:
+            center = topleft[0] + w/2, topleft[1] + h/2
         x, y = topleft
         cutoff = 5
         coords = [
@@ -132,9 +132,29 @@ class GameScreen(Screen):
             (x, y+cutoff)
         ]
         pygame.draw.lines(self.screen, C_GOLD, True, coords, width=4)
+        if text:
+            rendered_text = self.answer_font.render(text, True, C_WHITE)
+            self.screen.blit(rendered_text, rendered_text.get_rect(center=center))
 
-    def get_question(self):
-        return "What is cold, hard and sticky?"
+    def get_next_question(self):
+        try:
+            random_q = self.qna.pop(random.randrange(len(self.qna) - 1))
+            self.curr_q, self.curr_a = random_q['q'], random_q['ans']
+            self.curr_revealed = [False] * len(self.curr_a)
+        except Exception as e:
+            self.curr_q, self.curr_a, self.curr_revealed = '', [], []
+
+    def process_answer(self):
+        input = self.textbox.getText()
+        self.textbox.setText('')
+        for idx, ans in enumerate(self.curr_a):
+            exact_match = input.lower() == ans.lower()
+            word_match = any(input_word in ans.lower().split() for input_word in input.lower().split())
+            matches = [exact_match, word_match]
+            if any(matches):
+                self.curr_revealed[idx] = True
+        if all(self.curr_revealed):
+            self.get_next_question()
 
     def handle_events(self, events):
         for event in events:
