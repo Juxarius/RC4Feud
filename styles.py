@@ -12,6 +12,27 @@ C_GOLD = 255, 195, 0
 
 
 """
+Questions and Answers
+"""
+QNA_PATH = 'QnA.txt'
+with open(QNA_PATH) as f:
+    data = f.read().split('\n')
+
+getting_question = True
+QUESTIONS_AND_ANSWERS = []
+current_set = {}
+for line in data:
+    if line.startswith('#'):
+        if 'q' in current_set:
+            QUESTIONS_AND_ANSWERS.append(current_set.copy())
+        current_set['q'] = line.strip()[1:]
+        current_set['ans'] = []
+    else:
+        current_set['ans'].append(line)
+if 'q' in current_set:
+    QUESTIONS_AND_ANSWERS.append(current_set.copy())
+
+"""
 FONTS
 """
 # Welcome Screen
@@ -28,7 +49,6 @@ CONFIG_START_BUTTON = {
     'hoverColour': C_RED,
     'textColour': C_WHITE,
     'radius': 20,
-    'text': 'Start',
 }
 
 # Instruction Screen
@@ -62,20 +82,6 @@ CONFIG_INSTRUCTIONS_TEXT = {
 }
 
 # Game Screen
-QUESTIONS_AND_ANSWERS = [
-    {
-        'q': "What is cold, hard and sticky?",
-        'ans': ['Cum', 'A Stick', 'Frozen Glue', 'Your mom', 'Yo dad']
-    },
-    {
-        'q': 'Question 2',
-        'ans': ['answer 1', 'answer 2', 'answer 3', 'answer 4',]
-    },
-    {
-        'q': 'Question 3',
-        'ans': ['answer 1', 'answer 2', 'answer 3', 'answer 4',]
-    },
-]
 CONFIG_TIMER = {
     'position': (400, 100), # Center coordinates
     'font': 'calibri',

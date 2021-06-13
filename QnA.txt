@@ -1,0 +1,14 @@
+#What are the houses of RC4?
+Noctua
+Draco
+Leo
+Aquila
+Ursa
+#What are the primary colors?
+Red
+Blue
+Yellow
+#What are the basic light colours?
+Red
+Green
+Blue

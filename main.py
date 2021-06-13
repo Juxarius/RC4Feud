@@ -51,7 +51,7 @@ class WelcomeScreen(Screen):
     def __init__(self, screen):
         super().__init__(screen, InstructionScreen)
         cwt = CONFIG_WELCOME_TEXT
-        self.start_button = pw.Button(screen, *CONFIG_START_BUTTON['position'], **CONFIG_START_BUTTON, onRelease=self.trigger_next_screen)
+        self.start_button = pw.Button(screen, *CONFIG_START_BUTTON['position'], text='Start', **CONFIG_START_BUTTON, onRelease=self.trigger_next_screen)
         self.welcome_title = pygame.font.SysFont(cwt['font'], cwt['fontSize']).render(cwt['text'], True, cwt['colour'])
         self.drawings = [
             lambda: self.screen.blit(self.welcome_title, self.welcome_title.get_rect(center=cwt['position'])),
