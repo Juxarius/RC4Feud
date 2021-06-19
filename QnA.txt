@@ -1,14 +1,90 @@
-#What are the houses of RC4?
-Noctua
-Draco
-Leo
-Aquila
-Ursa
-#What are the primary colors?
-Red
-Blue
-Yellow
-#What are the basic light colours?
-Red
-Green
-Blue
+#Nearest MRT Station to your place of residence?
+Tanah Merah (5)
+Tampines (4)
+Admiralty (3)
+Dakota (3)
+Hougang (3)
+Lorong Chuan (3)
+Sengkang (3)
+Yishun (3)
+#Favourite Holiday?
+Christmas (27)
+Chinese New Year (19)
+New Year (4)
+National Day (2)
+Deepavali (2)
+Good Friday (1)
+Labour Day (1)
+Children's Day (1)
+#How do you like your eggs?
+Scrambled (21)
+Soft-boiled (11)
+Sunny Side Up (10)
+Fried (5)
+Half-Boiled (5)
+Hard-Boiled (4)
+Omelette (4)
+Poached (3)
+#Horoscope?
+Taurus (12)
+Cancer (12)
+Aries (6)
+Gemini (5)
+Libra (5)
+Pisces (5)
+Virgo (5)
+Scorpio (4)
+#Favourite Interest Group?
+Floorball (8)
+Tchoukball (6)
+RC4ME (5)
+Orc4bikes (4)
+Dodgeball (3)
+R4D (3)
+RC4fe (3)
+RC4Soccer (3)
+#Favourite colour?
+Blue (23)
+Black (11)
+Green (7)
+Pink (7)
+Red (5)
+White (3)
+Purple (3)
+Turquoise (3)
+#Favourite fast food?
+McDonalds (34)
+KFC (6)
+Subway (5)
+Burger King (4)
+Carl's Junior (3)
+Shake Shack (3)
+Mos Burger (2)
+Pizza Hut (2)
+#Favourite Secondary School Subject?
+E-math (25)
+Chemistry (10)
+A-math (5)
+Biology (5)
+Physics (5)
+History (4)
+Chinese (3)
+Music (3)
+#What is your favourite animal?
+Dog (20)
+Cat (11)
+Rabbit (6)
+Tiger (3)
+Snake (3)
+Panda (3)
+Whale (2)
+Turtle (2)
+#Favourite drink?
+Water (14)
+Coffee (11)
+Milo (9)
+Bubble Tea (8)
+Matcha (4)
+Bandung (3)
+Tea (3)
+Milk Tea (3)

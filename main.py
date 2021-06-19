@@ -3,7 +3,6 @@ import pygame_widgets as pw
 from styles import *
 import random
 
-
 """
 GLOBALS
 """
@@ -51,7 +50,7 @@ class WelcomeScreen(Screen):
     def __init__(self, screen):
         super().__init__(screen, InstructionScreen)
         cwt = CONFIG_WELCOME_TEXT
-        self.start_button = pw.Button(screen, *CONFIG_START_BUTTON['position'], text='Start', **CONFIG_START_BUTTON, onRelease=self.trigger_next_screen)
+        self.start_button = Button(screen, *CONFIG_START_BUTTON['position'], text='Start', **CONFIG_START_BUTTON, onRelease=self.trigger_next_screen)
         self.welcome_title = pygame.font.SysFont(cwt['font'], cwt['fontSize']).render(cwt['text'], True, cwt['colour'])
         self.drawings = [
             lambda: self.screen.blit(self.welcome_title, self.welcome_title.get_rect(center=cwt['position'])),
@@ -66,7 +65,7 @@ class InstructionScreen(Screen):
         super().__init__(screen, GameScreen)
         cit = CONFIG_INSTRUCTION_TITLE
         self.title = pygame.font.SysFont(cit['font'], cit['fontSize']).render(cit['text'], True, cit['colour'])
-        self.next_button = pw.Button(screen, *CONFIG_NEXT_BUTTON['position'], **CONFIG_NEXT_BUTTON, onRelease=self.trigger_next_screen)
+        self.next_button = Button(screen, *CONFIG_NEXT_BUTTON['position'], **CONFIG_NEXT_BUTTON, onRelease=self.trigger_next_screen)
         cit = CONFIG_INSTRUCTIONS_TEXT
         self.instruction_text = [pygame.font.SysFont(cit['font'], cit['fontSize']).render(line, True, cit['colour']) for line in INSTRUCTIONS]
         ftpx, ftpy = cit['firstTextPosition']
@@ -84,8 +83,8 @@ class InstructionScreen(Screen):
 
 class GameScreen(Screen):
     def __init__(self, screen):
-        super().__init__(screen)
-        self.curr_q, self.curr_a, self.curr_revealed = '', [], []
+        super().__init__(screen, EndScreen)
+        self.curr_q, self.curr_a, self.curr_revealed, self.score = '', [], [], 0
         self.qna = QUESTIONS_AND_ANSWERS
         self.get_next_question()
         self.time_limit = GAME_TIME_LIMIT_SECONDS + 1
@@ -110,8 +109,11 @@ class GameScreen(Screen):
         for idx, ans in enumerate(self.curr_a):
             if not self.curr_revealed[idx]:
                 ans = ''
-            self.draw_answer_frame(topleft=(CONSOLE_WIDTH / 2 + (-305 if idx % 2 == 0 else 5), 200 + idx//2 * 60), text=ans)
+            self.draw_answer_frame(topleft=(CONSOLE_WIDTH / 2 + (-305 if idx % 2 == 0 else 5), 130 + idx//2 * 60), text=ans)
         super().draw()
+
+        if time_left < 0:
+            self.trigger_next_screen()
 
     def draw_answer_frame(self, topleft=None, center=None, text=''):
         w, h = 300, 50
@@ -148,12 +150,14 @@ class GameScreen(Screen):
         input = self.textbox.getText()
         self.textbox.setText('')
         for idx, ans in enumerate(self.curr_a):
-            exact_match = input.lower() == ans.lower()
+            ans = ' '.join(ans.split()[:-1])
+            exact_match = input.lower().strip() == ans.lower().strip()
             word_match = any(input_word in ans.lower().split() for input_word in input.lower().split())
-            matches = [exact_match, word_match]
+            matches = [exact_match]
             if any(matches):
                 self.curr_revealed[idx] = True
         if all(self.curr_revealed):
+            self.score += 1
             self.get_next_question()
 
     def handle_events(self, events):
@@ -163,6 +167,48 @@ class GameScreen(Screen):
         self.textbox.listen(events)
         super().handle_events(events)
 
+    def trigger_next_screen(self):
+        self.next_screen = EndScreen(self.screen, self.score)
+
+
+class EndScreen(Screen):
+    def __init__(self, screen, score):
+        super().__init__(screen)
+        cet = CONFIG_END_TITLE
+        self.title = pygame.font.SysFont(cet['font'], cet['fontSize']).render(cet['text'], True, cet['colour'])
+        cfs = CONFIG_FINAL_SCORE
+        self.score_text = pygame.font.SysFont(cfs['font'], cfs['fontSize']).render('Final Score:', True, cfs['colour'])
+        cfsn = CONFIG_FINAL_SCORE_NUM
+        self.score_num = pygame.font.SysFont(cfsn['font'], cfsn['fontSize']).render(str(score), True, cfsn['colour'])
+        self.drawings = [
+            lambda: self.screen.blit(self.title, self.title.get_rect(center=cet['position'])),
+            lambda: self.screen.blit(self.score_text, self.score_text.get_rect(center=cfs['position'])),
+            lambda: self.screen.blit(self.score_num, self.score_num.get_rect(center=cfsn['position'])),
+        ]
+
+class Button:
+    def __init__(self, screen, x, y, w, h, text='', onRelease=None, inactiveColour=C_BLUE, hoverColour=C_BLUE, textColour=C_WHITE, radius=0, *args, **kwargs):
+        self.screen = screen
+        self.position = x, y, w, h
+        self.text = pygame.font.SysFont('calibri', 30).render(text, True, textColour)
+        self.onRelease = onRelease
+        self.inactiveColour = inactiveColour
+        self.hoverColour = hoverColour
+        self.textColour = textColour
+        self.radius = radius
+        self.center = x + w // 2, y + h // 2
+
+    def draw(self):
+        pygame.draw.rect(self.screen, self.inactiveColour, self.position, border_radius=self.radius)
+        if pygame.Rect(*self.position).collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(self.screen, self.hoverColour, self.position, border_radius=self.radius)
+        self.screen.blit(self.text, self.text.get_rect(center=self.center))
+
+    def listen(self, events):
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONUP and pygame.Rect(*self.position).collidepoint(pygame.mouse.get_pos()):
+                self.onRelease()
+        
 
 def main():
     clock = pygame.time.Clock()

@@ -83,7 +83,7 @@ CONFIG_INSTRUCTIONS_TEXT = {
 
 # Game Screen
 CONFIG_TIMER = {
-    'position': (400, 100), # Center coordinates
+    'position': (400, 70), # Center coordinates
     'font': 'calibri',
     'fontSize': 100,
     'text': "INSTRUCTIONS",
@@ -108,4 +108,27 @@ CONFIG_INPUT_BOX = {
     'textColour': C_BLACK,
     'borderColour': C_BLUE,
     'borderThickness': 5,
+}
+
+# End Screen
+CONFIG_END_TITLE = {
+    'position': (400, 200), # Center coordinates
+    'font': 'jokerman',
+    'fontSize': 60,
+    'colour': C_BLUE,
+    'text': 'Thanks for playing!!'
+}
+
+CONFIG_FINAL_SCORE = {
+    'position': (400, 300), # Center coordinates
+    'font': 'arialbold',
+    'fontSize': 50,
+    'colour': C_RED,
+}
+
+CONFIG_FINAL_SCORE_NUM = {
+    'position': (400, 370), # Center coordinates
+    'font': 'calibri',
+    'fontSize': 100,
+    'colour': C_WHITE,
 }
